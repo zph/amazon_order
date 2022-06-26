@@ -56,6 +56,10 @@ module AmazonOrder
       writer.generate_csv
     end
 
+    def generate_json
+      writer.generate_json
+    end
+
     def writer
       @_writer ||= AmazonOrder::Writer.new(file_glob_pattern)
     end
@@ -146,13 +150,13 @@ module AmazonOrder
 
     def save_page_for(year, page)
       log "Saving year:#{year} page:#{page}"
-      path = ['order', year.to_s, "p#{page}", Time.current.strftime('%Y%m%d%H%M%S')].join('-') + '.html'
+      path = ['order', year.to_s, "p#{page}"].join('-') + '.html'
       session.save_page(File.join(base_dir, path))
     end
 
     def save_invoice(year, order_id)
       log "Saving year:#{year} order_id:#{order_id}"
-      path = ['order-invoice', year.to_s, "oid:#{order_id}", Time.current.strftime('%Y%m%d%H%M%S')].join('--') + '.html'
+      path = ['order-invoice', year.to_s, "oid:#{order_id}"].join('--') + '.html'
       session.save_page(File.join(base_dir, path))
     end
 
