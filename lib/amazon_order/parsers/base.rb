@@ -7,6 +7,7 @@ module AmazonOrder
         @node = node
         @fetched_at = options[:fetched_at]
         @containing_object = options[:containing_object]
+        @order_number = options[:order_number]
       end
 
       def inspect

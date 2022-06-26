@@ -86,13 +86,53 @@ module AmazonOrder
           session.visit node.attr('href')
           save_page_for(year, current_page_node.text)
           break if limit && limit <= current_page_node.text.to_i
+          sleep 1
         end
+      end
+    end
+
+    def fetch_orders_invoices_for_year(options = {})
+      year = options.fetch(:year, Time.current.year)
+      if switch_year(year)
+        save_page_for(year, current_page_node.try!(:text))
+
+        current_url = session.current_url
+        save_invoices_from_doc(year, doc)
+        session.visit current_url
+        sleep 1
+
+        while (node = next_page_node) do
+          session.visit node.attr('href')
+          sleep 1
+
+          save_page_for(year, current_page_node.text)
+
+          current_url = session.current_url
+          save_invoices_from_doc(year, doc)
+          session.visit current_url
+          sleep 1
+
+          break if limit && limit <= current_page_node.text.to_i
+          sleep 1
+        end
+      end
+    end
+
+    require 'uri'
+    require 'cgi'
+    def save_invoices_from_doc(year, doc)
+      links = doc.css("a.a-link-normal").select { |e| e.values[1][/summary\/print\.html/] }.map { |e| "https://amazon.com#{e.values[1]}" }
+      links.each do |link|
+        order_id = CGI.parse(URI.parse(link).query)["orderID"].first
+        session.visit link
+        save_invoice(year, order_id)
       end
     end
 
     def switch_year(year)
       return true if year.to_i == selected_year
-      session.first('.order-filter-dropdown .a-dropdown-prompt').click
+      # session.first('.order-filter-dropdown .a-dropdown-prompt').click
+      session.first('.a-dropdown-prompt').click
       option = session.all('.a-popover-wrapper .a-dropdown-link').find{|e| e.text.gsub(/\D+/,'').to_i == year.to_i }
       return false if option.nil?
       option.click
@@ -110,9 +150,16 @@ module AmazonOrder
       session.save_page(File.join(base_dir, path))
     end
 
+    def save_invoice(year, order_id)
+      log "Saving year:#{year} order_id:#{order_id}"
+      path = ['order-invoice', year.to_s, "oid:#{order_id}", Time.current.strftime('%Y%m%d%H%M%S')].join('--') + '.html'
+      session.save_page(File.join(base_dir, path))
+    end
+
     def selected_year
       wait_for_selector('#orderFilter')
-      doc.css('#orderFilter option').find{|o| !o.attr('selected').nil? }.attr('value').gsub(/\D+/,'').to_i
+      doc.css(".a-dropdown-container option").find{|o| !o.attr('selected').nil? }.attr('value').gsub(/\D+/,'').to_i
+      #doc.css("#orderFilter option")
     end
 
     def number_of_orders

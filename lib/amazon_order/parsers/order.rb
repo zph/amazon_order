@@ -38,7 +38,8 @@ module AmazonOrder
           .map do |shipment|
           AmazonOrder::Parsers::Shipment.new(shipment,
                                              containing_object: self,
-                                             fetched_at: fetched_at)
+                                             fetched_at: fetched_at,
+                                             order_number: order_number)
         end
       end
 
@@ -51,7 +52,7 @@ module AmazonOrder
       end
 
       def digital_products
-        @_products ||= @node.css('.a-box:not(.shipment) .a-fixed-left-grid').map { |e| AmazonOrder::Parsers::Product.new(e, fetched_at: fetched_at) }
+        @_products ||= @node.css('.a-box:not(.shipment) .a-fixed-left-grid').map { |e| AmazonOrder::Parsers::Product.new(e, order_number: order_number, fetched_at: fetched_at) }
       end
 
       # might be broken now that orders have multiple shipments

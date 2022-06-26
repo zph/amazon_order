@@ -6,6 +6,7 @@ module AmazonOrder
                      path
                      content
                      image_url
+                     order_number
                    ]
 
       def title
@@ -25,6 +26,10 @@ module AmazonOrder
           img = @node.css('.a-col-left img')[0]
           get_original_image_url(img.attr('data-a-hires').presence || img.attr('src'))
         end
+      end
+
+      def order_number
+        @order_number
       end
     end
   end

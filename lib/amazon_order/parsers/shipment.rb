@@ -4,6 +4,7 @@ module AmazonOrder
       ATTRIBUTES = %w[
                      shipment_status
                      shipment_note
+                     order_number
                    ]
 
       # TODO shipment_date
@@ -30,9 +31,12 @@ module AmazonOrder
 
 
       def products
-        @_products ||= @node.css('.a-fixed-left-grid').map { |e| AmazonOrder::Parsers::Product.new(e, fetched_at: fetched_at) }
+        @_products ||= @node.css('.a-fixed-left-grid').map { |e| AmazonOrder::Parsers::Product.new(e, fetched_at: fetched_at, order_number: order_number) }
       end
 
+      def order_number
+        @order_number
+      end
     end
   end
 end
